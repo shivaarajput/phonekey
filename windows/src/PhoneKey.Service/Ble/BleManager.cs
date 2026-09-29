@@ -187,7 +187,8 @@ namespace PhoneKey.Service.Ble
         {
             try
             {
-                var session = await GattSession.FromDeviceIdAsync(service.DeviceId);
+                var bluetoothDeviceId = BluetoothDeviceId.FromId(service.DeviceId);
+                var session = await GattSession.FromDeviceIdAsync(bluetoothDeviceId);
                 if (session != null)
                 {
                     _logger.LogInformation("GATT Session Max PDU Size: {Size}", session.MaxPduSize);

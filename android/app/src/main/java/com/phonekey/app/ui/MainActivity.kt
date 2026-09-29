@@ -225,7 +225,7 @@ fun MainScreen(onScanQr: () -> Unit, repository: PairedPcRepository) {
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
-                            Icons.Default.Phone,
+                            Icons.Default.Lock,
                             contentDescription = null,
                             tint = Color(0xFF475569),
                             modifier = Modifier.size(56.dp)
@@ -288,7 +288,7 @@ fun PcItemCard(pc: PairedPc, onRevoke: () -> Unit, onDelete: () -> Unit) {
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        Icons.Default.Phone,
+                        Icons.Default.Lock,
                         contentDescription = null,
                         tint = if (pc.isRevoked) Color(0xFFEF4444) else Color(0xFF6366F1),
                         modifier = Modifier.size(28.dp)
