@@ -62,6 +62,13 @@ Set-ItemProperty -Path $cpRegPath -Name "(default)" -Value "PhoneKeyCredentialPr
 Write-Host "[+] Registered Credential Provider in Windows LogonUI" -ForegroundColor Green
 
 # 5. Copy and Register PhoneKey Windows Service
+$existing = Get-Service -Name "PhoneKeyService" -ErrorAction SilentlyContinue
+if ($existing -and $existing.Status -eq 'Running') {
+    Write-Host "[*] Stopping running PhoneKeyService to release binary locks..." -ForegroundColor Yellow
+    Stop-Service -Name "PhoneKeyService" -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Seconds 2
+}
+
 $serviceSource = Join-Path $PSScriptRoot "Service"
 $serviceTargetDir = Join-Path $InstallDir "Service"
 
