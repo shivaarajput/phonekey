@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using PhoneKey.Core.Crypto;
 using PhoneKey.Core.Ipc;
+using PhoneKey.Core.Protocol;
 using PhoneKey.Core.Proximity;
 using PhoneKey.Core.Storage;
 using PhoneKey.Service.AutoLock;
