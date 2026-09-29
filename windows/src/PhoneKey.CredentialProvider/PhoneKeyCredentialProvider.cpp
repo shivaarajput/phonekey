@@ -73,7 +73,6 @@ IFACEMETHODIMP CPhoneKeyCredentialProvider::SetUsageScenario(
         return S_OK;
 
     case CPUS_CHANGE_PASSWORD:
-    case CPUS_CREDENTIAL_EVALUATION:
     default:
         return E_NOTIMPL;
     }

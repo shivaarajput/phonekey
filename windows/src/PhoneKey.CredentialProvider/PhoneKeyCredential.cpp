@@ -185,6 +185,7 @@ IFACEMETHODIMP CPhoneKeyCredential::GetSubmitButtonValue(DWORD dwFieldID, DWORD*
 
 IFACEMETHODIMP CPhoneKeyCredential::GetComboBoxValueCount(DWORD, DWORD*, DWORD*) { return E_NOTIMPL; }
 IFACEMETHODIMP CPhoneKeyCredential::GetComboBoxValueAt(DWORD, DWORD, PWSTR*) { return E_NOTIMPL; }
+IFACEMETHODIMP CPhoneKeyCredential::SetComboBoxSelectedValue(DWORD, DWORD) { return E_NOTIMPL; }
 IFACEMETHODIMP CPhoneKeyCredential::SetStringValue(DWORD, PCWSTR) { return E_NOTIMPL; }
 
 IFACEMETHODIMP CPhoneKeyCredential::CommandLinkClicked(DWORD) { return E_NOTIMPL; }

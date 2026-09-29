@@ -23,6 +23,7 @@ public:
     IFACEMETHODIMP GetSubmitButtonValue(DWORD dwFieldID, DWORD* pdwAdjacentTo);
     IFACEMETHODIMP GetComboBoxValueCount(DWORD dwFieldID, DWORD* pcItems, DWORD* pdwSelectedItem);
     IFACEMETHODIMP GetComboBoxValueAt(DWORD dwFieldID, DWORD dwItem, PWSTR* ppszItem);
+    IFACEMETHODIMP SetComboBoxSelectedValue(DWORD dwFieldID, DWORD dwSelectedItem);
     IFACEMETHODIMP SetStringValue(DWORD dwFieldID, PCWSTR psz);
     IFACEMETHODIMP CommandLinkClicked(DWORD dwFieldID);
     IFACEMETHODIMP GetSerialization(

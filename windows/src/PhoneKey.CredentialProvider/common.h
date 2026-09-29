@@ -10,7 +10,12 @@
 #include <credentialprovider.h>
 #include <ntsecapi.h>
 #include <subauth.h>
+#include <sspi.h>
 #include <new>
+
+#ifndef NEGOSSP_NAME_A
+#define NEGOSSP_NAME_A "Negotiate"
+#endif
 
 #include "guid.h"
 
