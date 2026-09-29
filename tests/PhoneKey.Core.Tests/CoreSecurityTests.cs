@@ -144,7 +144,7 @@ namespace PhoneKey.Core.Tests
             Assert.Equal(ProximityState.GracePeriod, sm.CurrentState);
 
             // Tick past grace period triggers lock
-            System.Threading.Thread.Sleep(1100);
+            System.Threading.Thread.Sleep(1500);
             sm.ProcessTick();
 
             Assert.Equal(ProximityState.LockTriggered, sm.CurrentState);

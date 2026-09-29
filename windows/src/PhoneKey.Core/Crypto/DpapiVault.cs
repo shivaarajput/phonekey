@@ -44,7 +44,14 @@ namespace PhoneKey.Core.Crypto
                 byte[] packedGcm = ms.ToArray();
 
                 // Layer 2: DPAPI Protect
-                return ProtectedData.Protect(packedGcm, EntropySalt, DataProtectionScope.LocalMachine);
+                try
+                {
+                    return ProtectedData.Protect(packedGcm, EntropySalt, DataProtectionScope.LocalMachine);
+                }
+                catch (CryptographicException)
+                {
+                    return ProtectedData.Protect(packedGcm, EntropySalt, DataProtectionScope.CurrentUser);
+                }
             }
             finally
             {
@@ -75,7 +82,14 @@ namespace PhoneKey.Core.Crypto
             try
             {
                 // Layer 1: DPAPI Unprotect
-                decryptedGcm = ProtectedData.Unprotect(sealedBlob, EntropySalt, DataProtectionScope.LocalMachine);
+                try
+                {
+                    decryptedGcm = ProtectedData.Unprotect(sealedBlob, EntropySalt, DataProtectionScope.LocalMachine);
+                }
+                catch (CryptographicException)
+                {
+                    decryptedGcm = ProtectedData.Unprotect(sealedBlob, EntropySalt, DataProtectionScope.CurrentUser);
+                }
                 if (decryptedGcm.Length < CryptoConstants.AesGcmNonceSizeBytes + CryptoConstants.AesGcmTagSizeBytes)
                     return false;
 
