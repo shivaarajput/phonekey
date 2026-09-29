@@ -24,7 +24,7 @@ namespace PhoneKey.Service.Ipc
         private readonly ProximityStateMachine _stateMachine;
         private readonly DeviceRegistry _deviceRegistry;
         private readonly LockController _lockController;
-        private readonly byte[]? _cachedSealedCredentialBlob; // Stored DPAPI blob
+        private byte[]? _cachedSealedCredentialBlob; // Stored DPAPI blob
         private CancellationTokenSource? _cts;
         private Task? _listenerTask;
         private bool _isDisposed;
@@ -139,6 +139,10 @@ namespace PhoneKey.Service.Ipc
                         }
                         break;
 
+                    case IpcCommandType.QuickPair:
+                        await HandleQuickPairAsync(req.Payload, writer);
+                        break;
+
                     default:
                         await writer.WriteLineAsync("{\"error\":\"Unknown command\"}");
                         break;
@@ -147,6 +151,63 @@ namespace PhoneKey.Service.Ipc
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Error handling named pipe client request.");
+            }
+        }
+
+        private async Task HandleQuickPairAsync(string? payloadJson, StreamWriter writer)
+        {
+            if (string.IsNullOrEmpty(payloadJson))
+            {
+                await writer.WriteLineAsync("{\"success\":false,\"error\":\"Missing payload\"}");
+                return;
+            }
+
+            try
+            {
+                var payload = JsonSerializer.Deserialize<QuickPairPayload>(payloadJson);
+                if (payload == null || string.IsNullOrEmpty(payload.Password))
+                {
+                    await writer.WriteLineAsync("{\"success\":false,\"error\":\"Password is required\"}");
+                    return;
+                }
+
+                byte[] sharedSecret = new byte[32];
+                System.Security.Cryptography.RandomNumberGenerator.Fill(sharedSecret);
+
+                var dev = new EnrolledDevice
+                {
+                    DeviceId = Guid.NewGuid(),
+                    DeviceName = "Nearby Android Phone",
+                    SharedSecretBase64 = Convert.ToBase64String(sharedSecret),
+                    PublicKeyBase64 = "",
+                    HardwareLevel = HardwareSecurityLevel.Tee,
+                    EnrolledAtUtc = DateTimeOffset.UtcNow
+                };
+
+                _deviceRegistry.SaveDevice(dev);
+
+                string domain = string.IsNullOrEmpty(payload.Domain) ? Environment.UserDomainName : payload.Domain;
+                string username = string.IsNullOrEmpty(payload.Username) ? Environment.UserName : payload.Username;
+                byte[] sealedBlob = DpapiVault.SealCredential(username, domain, payload.Password, sharedSecret);
+
+                string programData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+                string vaultPath = Path.Combine(programData, "PhoneKey", "vault.dat");
+                Directory.CreateDirectory(Path.GetDirectoryName(vaultPath)!);
+                File.WriteAllBytes(vaultPath, sealedBlob);
+                _cachedSealedCredentialBlob = sealedBlob;
+
+                if (payload.BluetoothAddress != 0)
+                {
+                    _ = Task.Run(() => _bleManager.ConnectToDeviceAsync(payload.BluetoothAddress));
+                }
+
+                _logger.LogInformation("1-Click QuickPair enrolled device successfully.");
+                await writer.WriteLineAsync("{\"success\":true}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed in QuickPair.");
+                await writer.WriteLineAsync($"{{\"success\":false,\"error\":{JsonSerializer.Serialize(ex.Message)}}}");
             }
         }
 
@@ -175,6 +236,16 @@ namespace PhoneKey.Service.Ipc
                 var notReadyResp = new IpcLogonBufferResponse { Success = false, ErrorMessage = "Phone is not in verified proximity." };
                 await writer.WriteLineAsync(JsonSerializer.Serialize(notReadyResp));
                 return;
+            }
+
+            if (_cachedSealedCredentialBlob == null)
+            {
+                string programData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+                string vaultPath = Path.Combine(programData, "PhoneKey", "vault.dat");
+                if (File.Exists(vaultPath))
+                {
+                    try { _cachedSealedCredentialBlob = File.ReadAllBytes(vaultPath); } catch { }
+                }
             }
 
             if (_cachedSealedCredentialBlob == null)
@@ -208,6 +279,10 @@ namespace PhoneKey.Service.Ipc
         private IpcStatusResponse BuildStatusResponse()
         {
             var activeDev = _bleManager.ActiveDevice;
+            bool hasDiscovered = _bleManager.DiscoveredAddress.HasValue &&
+                _bleManager.DiscoveredTime.HasValue &&
+                (DateTimeOffset.UtcNow - _bleManager.DiscoveredTime.Value).TotalSeconds < 15;
+
             return new IpcStatusResponse
             {
                 IsServiceRunning = true,
@@ -220,7 +295,11 @@ namespace PhoneKey.Service.Ipc
                 ConnectedPhoneName = activeDev?.DeviceName ?? string.Empty,
                 HardwareSecurityLevel = activeDev?.HardwareLevel.ToString() ?? "None",
                 BatteryPercent = 85,
-                IsLogonBufferAvailable = _cachedSealedCredentialBlob != null
+                IsLogonBufferAvailable = _cachedSealedCredentialBlob != null || File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "PhoneKey", "vault.dat")),
+                HasDiscoveredPhone = hasDiscovered,
+                DiscoveredPhoneAddress = _bleManager.DiscoveredAddress ?? 0,
+                DiscoveredPhoneName = _bleManager.DiscoveredName ?? "Nearby Android Phone",
+                DiscoveredPhoneRssi = _bleManager.DiscoveredRssi ?? 0
             };
         }
 

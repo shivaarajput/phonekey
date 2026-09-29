@@ -55,6 +55,10 @@ namespace PhoneKey.Service.Ble
         }
 
         public EnrolledDevice? ActiveDevice => _activeEnrolledDevice;
+        public ulong? DiscoveredAddress { get; private set; }
+        public string? DiscoveredName { get; private set; }
+        public short? DiscoveredRssi { get; private set; }
+        public DateTimeOffset? DiscoveredTime { get; private set; }
 
         public void StartScanning()
         {
@@ -84,6 +88,11 @@ namespace PhoneKey.Service.Ble
 
         private async void OnAdvertisementReceived(BluetoothLEAdvertisementWatcher sender, BluetoothLEAdvertisementReceivedEventArgs args)
         {
+            // Record discovered phone
+            DiscoveredAddress = args.BluetoothAddress;
+            DiscoveredRssi = args.RawSignalStrengthInDBm;
+            DiscoveredTime = DateTimeOffset.UtcNow;
+
             // Update proximity state machine with live advertisement RSSI
             _stateMachine.ProcessRssi(args.RawSignalStrengthInDBm);
 
@@ -92,7 +101,7 @@ namespace PhoneKey.Service.Ble
             var devices = _deviceRegistry.GetDevices().Where(d => !d.IsRevoked).ToList();
             if (devices.Count == 0)
             {
-                return; // No enrolled phones yet
+                return; // No enrolled phones yet; UI can show QuickPair prompt
             }
 
             _logger.LogInformation("Discovered PhoneKey peripheral. Bluetooth Address: {Addr:X}, RSSI: {Rssi} dBm", 
@@ -101,7 +110,7 @@ namespace PhoneKey.Service.Ble
             await ConnectToDeviceAsync(args.BluetoothAddress);
         }
 
-        private async Task ConnectToDeviceAsync(ulong bluetoothAddress)
+        public async Task ConnectToDeviceAsync(ulong bluetoothAddress)
         {
             await _authLock.WaitAsync();
             try

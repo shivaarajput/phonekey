@@ -143,7 +143,12 @@ IFACEMETHODIMP CPhoneKeyCredentialProvider::GetCredentialCount(
 
     *pdwCount = 1;
     *pdwDefault = 0;
-    *pbAutoLogonWithDefault = FALSE;
+
+    PhoneKeyStatus status;
+    ZeroMemory(&status, sizeof(status));
+    CIpcClient::QueryStatus(&status);
+
+    *pbAutoLogonWithDefault = (status.bInProximity && status.bAuthenticated);
     return S_OK;
 }
 

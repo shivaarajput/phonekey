@@ -68,6 +68,13 @@ class MainActivity : ComponentActivity() {
         setContent {
             PhoneKeyTheme {
                 MainScreen(
+                    onToggleService = { enable ->
+                        if (enable) {
+                            PhoneKeyForegroundService.startService(this)
+                        } else {
+                            PhoneKeyForegroundService.stopService(this)
+                        }
+                    },
                     onScanQr = { launchQrScanner() },
                     pairedPcs = pairedPcsState.value,
                     onRevoke = { pcId ->
@@ -151,6 +158,7 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
+    onToggleService: (Boolean) -> Unit,
     onScanQr: () -> Unit,
     pairedPcs: List<PairedPc>,
     onRevoke: (String) -> Unit,
@@ -197,13 +205,13 @@ fun MainScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Box(
                                 modifier = Modifier
-                                    .size(12.dp)
+                                    .size(14.dp)
                                     .clip(CircleShape)
                                     .background(if (serviceEnabled) Color(0xFF10B981) else Color(0xFFEF4444))
                             )
                             Spacer(modifier = Modifier.width(10.dp))
                             Text(
-                                text = if (serviceEnabled) "PhoneKey Active" else "PhoneKey Paused",
+                                text = if (serviceEnabled) "PhoneKey Active (Broadcasting)" else "PhoneKey Paused",
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp
@@ -212,21 +220,27 @@ fun MainScreen(
 
                         Switch(
                             checked = serviceEnabled,
-                            onCheckedChange = { serviceEnabled = it }
+                            onCheckedChange = {
+                                serviceEnabled = it
+                                onToggleService(it)
+                            }
                         )
                     }
 
                     Spacer(modifier = Modifier.height(14.dp))
                     Text(
-                        text = "Hardware Security: TEE / StrongBox Active",
+                        text = if (serviceEnabled) 
+                            "Broadcasting presence beacon to nearby paired Windows PCs."
+                        else 
+                            "Presence broadcasting is paused. PC will not auto-unlock.",
                         color = Color(0xFF94A3B8),
-                        fontSize = 12.sp
+                        fontSize = 13.sp
                     )
                     Text(
-                        text = "Private key is non-exportable and isolated inside hardware chip.",
+                        text = "Hardware Security: TEE / StrongBox Active (Isolated Private Key)",
                         color = Color(0xFF64748B),
                         fontSize = 11.sp,
-                        modifier = Modifier.padding(top = 2.dp)
+                        modifier = Modifier.padding(top = 4.dp)
                     )
                 }
             }
@@ -234,7 +248,7 @@ fun MainScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             Text(
-                text = "ENROLLED WINDOWS PCS",
+                text = "PAIRED WINDOWS PCS",
                 color = Color(0xFF94A3B8),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
@@ -242,33 +256,50 @@ fun MainScreen(
             )
 
             if (pairedPcs.isEmpty()) {
-                Box(
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f),
-                    contentAlignment = Alignment.Center
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF161F30))
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            Icons.Default.Lock,
-                            contentDescription = null,
-                            tint = Color(0xFF475569),
-                            modifier = Modifier.size(56.dp)
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(
-                            text = "No Windows PC enrolled yet",
-                            color = Color(0xFF94A3B8),
-                            fontSize = 14.sp
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Button(
-                            onClick = onScanQr,
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6366F1))
-                        ) {
-                            Icon(Icons.Default.Add, contentDescription = null)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Pair PC via QR Code")
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(24.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                Icons.Default.Lock,
+                                contentDescription = null,
+                                tint = Color(0xFF6366F1),
+                                modifier = Modifier.size(52.dp)
+                            )
+                            Spacer(modifier = Modifier.height(14.dp))
+                            Text(
+                                text = "Ready for PC Connection",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "Keep PhoneKey ON. On your Windows PC, open PhoneKey — it will detect this phone and let you pair with 1 click.",
+                                color = Color(0xFF94A3B8),
+                                fontSize = 13.sp,
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(18.dp))
+                            OutlinedButton(
+                                onClick = onScanQr,
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFA5B4FC))
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("Or Pair via QR Code", fontSize = 13.sp)
+                            }
                         }
                     }
                 }

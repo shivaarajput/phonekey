@@ -19,6 +19,7 @@ namespace PhoneKey.UI
         private readonly DispatcherTimer _pollTimer;
         private readonly DeviceRegistry _deviceRegistry = new();
         private bool _isPolling;
+        private ulong _lastDiscoveredAddress;
 
         public MainWindow()
         {
@@ -85,6 +86,18 @@ namespace PhoneKey.UI
             ServiceStatusDot.Fill = (SolidColorBrush)FindResource("BrushSuccess");
             TxtServiceStatus.Text = "Service: Active";
 
+            // 1-Click Nearby Discovered Phone Banner
+            if (status.HasDiscoveredPhone && !status.IsPhoneConnected && _deviceRegistry.GetDevices().Count == 0)
+            {
+                BannerNearbyPhone.Visibility = Visibility.Visible;
+                TxtNearbyPhoneInfo.Text = $"Found Phone (Signal: {status.DiscoveredPhoneRssi} dBm). Click to pair and unlock your PC automatically when present.";
+                _lastDiscoveredAddress = status.DiscoveredPhoneAddress;
+            }
+            else
+            {
+                BannerNearbyPhone.Visibility = Visibility.Collapsed;
+            }
+
             // Phone Connection
             if (status.IsPhoneConnected)
             {
@@ -148,6 +161,7 @@ namespace PhoneKey.UI
 
         private void SetServiceOfflineUi()
         {
+            BannerNearbyPhone.Visibility = Visibility.Collapsed;
             ServiceStatusDot.Fill = (SolidColorBrush)FindResource("BrushDanger");
             TxtServiceStatus.Text = "Service: Stopped";
             PhoneStatusDot.Fill = (SolidColorBrush)FindResource("BrushDanger");
@@ -159,6 +173,12 @@ namespace PhoneKey.UI
             TxtRssiValue.Text = "";
             RssiProgressBar.Value = 0;
             TxtGracePeriod.Text = "Ensure PhoneKeyService is started.";
+        }
+
+        private void BtnQuickPair_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new QuickPairWindow(_lastDiscoveredAddress) { Owner = this };
+            dlg.ShowDialog();
         }
 
         private async void BtnLockNow_Click(object sender, RoutedEventArgs e)

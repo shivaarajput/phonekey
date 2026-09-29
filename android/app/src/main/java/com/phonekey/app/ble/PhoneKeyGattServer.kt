@@ -64,8 +64,11 @@ class PhoneKeyGattServer(
                     val pcs = repository.getPairedPcs()
                     val activePc = pcs.firstOrNull { !it.isRevoked }
                     val keyBytes = if (activePc != null) {
-                        com.phonekey.app.crypto.KeyStoreManager.getPublicKeyBytes(activePc.pcId) ?: byteArrayOf()
-                    } else byteArrayOf()
+                        com.phonekey.app.crypto.KeyStoreManager.getPublicKeyBytes(activePc.pcId) 
+                            ?: com.phonekey.app.crypto.KeyStoreManager.getDevicePublicKeyBytes()
+                    } else {
+                        com.phonekey.app.crypto.KeyStoreManager.getDevicePublicKeyBytes()
+                    }
                     bluetoothGattServer?.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, keyBytes)
                 }
                 GattUuids.CHALLENGE_CHAR_UUID -> {
@@ -106,7 +109,16 @@ class PhoneKeyGattServer(
                     Log.d(TAG, "Sent signed challenge response indication.")
 
                     if (result.success && result.pcId != null) {
-                        onAuthSuccess(result.pcId.toString())
+                        val pcIdStr = result.pcId.toString()
+                        val repo = com.phonekey.app.data.PairedPcRepository(context)
+                        if (!repo.getPairedPcs().any { it.pcId == pcIdStr }) {
+                            repo.savePc(com.phonekey.app.data.PairedPc(
+                                pcId = pcIdStr,
+                                hostname = "Windows Workstation",
+                                enrolledAt = System.currentTimeMillis()
+                            ))
+                        }
+                        onAuthSuccess(pcIdStr)
                     }
                 }
             }

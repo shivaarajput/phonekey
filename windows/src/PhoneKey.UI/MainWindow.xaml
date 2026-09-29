@@ -13,11 +13,12 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <Border Grid.Row="0" Margin="0,0,0,24" Padding="0,0,0,16" BorderBrush="{StaticResource BrushBorderDark}" BorderThickness="0,0,0,1">
+        <Border Grid.Row="0" Margin="0,0,0,20" Padding="0,0,0,16" BorderBrush="{StaticResource BrushBorderDark}" BorderThickness="0,0,0,1">
             <DockPanel LastChildFill="False">
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
                     <Border Background="{StaticResource BrushPrimary}" CornerRadius="10" Width="40" Height="40" Margin="0,0,14,0">
@@ -40,8 +41,19 @@
             </DockPanel>
         </Border>
 
+        <!-- 1-Click Nearby Discovered Phone Banner -->
+        <Border x:Name="BannerNearbyPhone" Grid.Row="1" Visibility="Collapsed" Background="#1E1B4B" CornerRadius="12" Padding="18" Margin="0,0,0,18" BorderBrush="#6366F1" BorderThickness="1.5">
+            <DockPanel LastChildFill="True">
+                <Button x:Name="BtnQuickPair" Content="⚡ 1-Click Pair &amp; Enable Auto-Unlock" Style="{StaticResource ModernBtn}" DockPanel.Dock="Right" VerticalAlignment="Center" Click="BtnQuickPair_Click" Padding="16,10"/>
+                <StackPanel VerticalAlignment="Center" Margin="0,0,16,0">
+                    <TextBlock Text="📱 Nearby Phone Detected!" FontSize="15" FontWeight="Bold" Foreground="#A5B4FC"/>
+                    <TextBlock x:Name="TxtNearbyPhoneInfo" Text="Your phone is actively broadcasting. Click 1-Click Pair to enable instant auto-unlock when your phone is present." FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="0,3,0,0"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
         <!-- Live Status Hero Card -->
-        <Border Grid.Row="1" Background="{StaticResource BrushCardDark}" CornerRadius="12" Padding="24" Margin="0,0,0,20" BorderBrush="{StaticResource BrushBorderDark}" BorderThickness="1">
+        <Border Grid.Row="2" Background="{StaticResource BrushCardDark}" CornerRadius="12" Padding="24" Margin="0,0,0,20" BorderBrush="{StaticResource BrushBorderDark}" BorderThickness="1">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -82,7 +94,7 @@
         </Border>
 
         <!-- Action Control Buttons -->
-        <Border Grid.Row="2" Margin="0,0,0,24">
+        <Border Grid.Row="3" Margin="0,0,0,24">
             <WrapPanel Orientation="Horizontal">
                 <Button x:Name="BtnLockNow" Content="🔒 Lock now" Style="{StaticResource DangerBtn}" Margin="0,0,12,8" Click="BtnLockNow_Click"/>
                 <Button x:Name="BtnRegisterPhone" Content="📱 Register phone" Style="{StaticResource ModernBtn}" Margin="0,0,12,8" Click="BtnRegisterPhone_Click"/>
@@ -93,7 +105,7 @@
         </Border>
 
         <!-- Settings & Configuration Panel -->
-        <Border Grid.Row="3" Background="{StaticResource BrushCardDark}" CornerRadius="12" Padding="20" BorderBrush="{StaticResource BrushBorderDark}" BorderThickness="1">
+        <Border Grid.Row="4" Background="{StaticResource BrushCardDark}" CornerRadius="12" Padding="20" BorderBrush="{StaticResource BrushBorderDark}" BorderThickness="1">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel>
                     <TextBlock Text="Security &amp; Proximity Preferences" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,16"/>

@@ -109,6 +109,19 @@ object KeyStoreManager {
         return cert.publicKey.encoded
     }
 
+    fun getOrCreatePublicKeyBytes(pcId: String): ByteArray {
+        val existing = getPublicKeyBytes(pcId)
+        if (existing != null && existing.isNotEmpty()) {
+            return existing
+        }
+        val generated = generateKeyPair(pcId)
+        return generated.publicKey.encoded
+    }
+
+    fun getDevicePublicKeyBytes(): ByteArray {
+        return getOrCreatePublicKeyBytes("PRIMARY_DEVICE")
+    }
+
     fun deleteKey(pcId: String) {
         val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
         val alias = getAliasForPc(pcId)

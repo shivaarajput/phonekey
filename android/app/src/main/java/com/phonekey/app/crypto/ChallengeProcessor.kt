@@ -52,17 +52,21 @@ object ChallengeProcessor {
         val timestampUtcMs = buffer.long
         val policyFlags = buffer.get()
 
-        // Verify key exists for this PC ID
+        // Verify key exists for this PC ID, auto-generate if first time connecting
         val pcIdStr = pcId.toString()
         if (!KeyStoreManager.hasKey(pcIdStr)) {
-            val errResp = buildResponsePacket(
-                statusCode = 0x03, // Hardware / Key Error
-                noncePhone = ByteArray(32),
-                hwLevel = 0x01,
-                batteryLevel = batteryLevel.toByte(),
-                signature = byteArrayOf()
-            )
-            return ChallengeResult(false, errResp, pcId)
+            try {
+                KeyStoreManager.generateKeyPair(pcIdStr)
+            } catch (e: Exception) {
+                val errResp = buildResponsePacket(
+                    statusCode = 0x03, // Hardware / Key Error
+                    noncePhone = ByteArray(32),
+                    hwLevel = 0x01,
+                    batteryLevel = batteryLevel.toByte(),
+                    signature = byteArrayOf()
+                )
+                return ChallengeResult(false, errResp, pcId)
+            }
         }
 
         // Generate Phone Entropy

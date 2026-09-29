@@ -16,13 +16,22 @@ namespace PhoneKey.Core.Ipc
         ManualLock = 3,
         StartEnrollment = 4,
         RevokeDevice = 5,
-        UpdateConfig = 6
+        UpdateConfig = 6,
+        QuickPair = 7
     }
 
     public sealed class IpcRequest
     {
         public IpcCommandType Command { get; set; }
         public string? Payload { get; set; }
+    }
+
+    public sealed class QuickPairPayload
+    {
+        public ulong BluetoothAddress { get; set; }
+        public string Password { get; set; } = string.Empty;
+        public string Username { get; set; } = string.Empty;
+        public string Domain { get; set; } = string.Empty;
     }
 
     public sealed class IpcStatusResponse
@@ -38,6 +47,10 @@ namespace PhoneKey.Core.Ipc
         public string HardwareSecurityLevel { get; set; } = string.Empty;
         public byte BatteryPercent { get; set; }
         public bool IsLogonBufferAvailable { get; set; }
+        public bool HasDiscoveredPhone { get; set; }
+        public ulong DiscoveredPhoneAddress { get; set; }
+        public string DiscoveredPhoneName { get; set; } = string.Empty;
+        public short DiscoveredPhoneRssi { get; set; }
     }
 
     public sealed class IpcLogonBufferResponse
