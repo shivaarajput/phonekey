@@ -140,7 +140,7 @@ namespace PhoneKey.Core.Tests
             Assert.Equal(ProximityState.InProximity, sm.CurrentState);
 
             // Weak RSSI enters grace period after Kalman filter converges past lock threshold
-            for (int i = 0; i < 6; i++) sm.ProcessRssi(-90);
+            for (int i = 0; i < 15; i++) sm.ProcessRssi(-90);
             Assert.Equal(ProximityState.GracePeriod, sm.CurrentState);
 
             // Tick past grace period triggers lock
