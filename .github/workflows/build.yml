@@ -48,16 +48,19 @@ jobs:
           $dist = "dist\Windows-x64"
           New-Item -ItemType Directory -Path $dist -Force | Out-Null
           
-          # Copy C++ Credential Provider DLL
-          Copy-Item "windows\src\PhoneKey.CredentialProvider\x64\Release\PhoneKeyCP.dll" -Destination $dist -Force
+          # Find and copy C++ Credential Provider DLL
+          $dll = (Get-ChildItem -Path "windows" -Filter "PhoneKeyCP.dll" -Recurse | Select-Object -First 1).FullName
+          Copy-Item $dll -Destination $dist -Force
           
           # Copy .NET Windows Service
           New-Item -ItemType Directory -Path "$dist\Service" -Force | Out-Null
-          Copy-Item "windows\src\PhoneKey.Service\bin\Release\net8.0-windows10.0.19041.0\*" -Destination "$dist\Service" -Recurse -Force
+          $serviceBin = (Get-ChildItem -Path "windows\src\PhoneKey.Service\bin" -Filter "PhoneKey.Service.exe" -Recurse | Select-Object -First 1).Directory.FullName
+          Copy-Item "$serviceBin\*" -Destination "$dist\Service" -Recurse -Force
           
           # Copy .NET WPF Desktop UI
           New-Item -ItemType Directory -Path "$dist\UI" -Force | Out-Null
-          Copy-Item "windows\src\PhoneKey.UI\bin\Release\net8.0-windows10.0.19041.0\*" -Destination "$dist\UI" -Recurse -Force
+          $uiBin = (Get-ChildItem -Path "windows\src\PhoneKey.UI\bin" -Filter "PhoneKey.UI.exe" -Recurse | Select-Object -First 1).Directory.FullName
+          Copy-Item "$uiBin\*" -Destination "$dist\UI" -Recurse -Force
           
           # Copy Registration & Unregistration Scripts
           Copy-Item "scripts\register_credential_provider.ps1" -Destination $dist -Force
@@ -88,14 +91,15 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: "8.5"
 
       - name: Build Android Debug APK
         working-directory: ./android
+        env:
+          ANDROID_HOME: /usr/local/lib/android/sdk
         run: |
           gradle assembleDebug --no-daemon
 

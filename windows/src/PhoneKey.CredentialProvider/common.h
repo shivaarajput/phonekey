@@ -6,9 +6,11 @@
 
 #include <windows.h>
 #include <strsafe.h>
+#include <shlwapi.h>
 #include <credentialprovider.h>
 #include <ntsecapi.h>
 #include <subauth.h>
+#include <new>
 
 #include "guid.h"
 
