@@ -1,4 +1,5 @@
 #include "PhoneKeyCredentialProvider.h"
+#include "IpcClient.h"
 
 // Field definitions for LogonUI display
 static const CREDENTIAL_PROVIDER_FIELD_DESCRIPTOR s_rgFieldDescriptors[] =
