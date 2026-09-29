@@ -1,0 +1,32 @@
+<Window x:Class="PhoneKey.UI.Views.DiagnosticsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="PhoneKey Security Diagnostics" 
+        Height="500" Width="640"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource BrushBgDark}"
+        Foreground="{StaticResource BrushTextPrimary}"
+        FontFamily="Segoe UI, Inter, sans-serif">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,14">
+            <TextBlock Text="Security &amp; Subsystem Diagnostics" FontSize="18" FontWeight="Bold"/>
+            <TextBlock Text="Detailed cryptographic and session state verification." FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
+        </StackPanel>
+
+        <Border Grid.Row="1" Background="{StaticResource BrushCardDark}" CornerRadius="8" Padding="14" BorderBrush="{StaticResource BrushBorderDark}" BorderThickness="1">
+            <TextBox x:Name="TxtLog" Background="Transparent" Foreground="#E2E8F0" BorderThickness="0" FontFamily="Consolas, monospace" FontSize="11" IsReadOnly="True" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap"/>
+        </Border>
+
+        <DockPanel Grid.Row="2" Margin="0,14,0,0" LastChildFill="False">
+            <Button Content="Copy Diagnostics" Style="{StaticResource SecondaryBtn}" DockPanel.Dock="Left" Click="BtnCopy_Click"/>
+            <Button Content="Close" Style="{StaticResource ModernBtn}" DockPanel.Dock="Right" Click="BtnClose_Click"/>
+        </DockPanel>
+    </Grid>
+</Window>

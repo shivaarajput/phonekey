@@ -1,0 +1,45 @@
+<Window x:Class="PhoneKey.UI.Views.PairingWizardWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Register New Phone - PhoneKey Enrollment" 
+        Height="580" Width="520"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource BrushBgDark}"
+        Foreground="{StaticResource BrushTextPrimary}"
+        FontFamily="Segoe UI, Inter, sans-serif"
+        ResizeMode="NoResize">
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,16">
+            <TextBlock Text="Enroll Android Phone" FontSize="20" FontWeight="Bold"/>
+            <TextBlock Text="Scan this secure QR code using the PhoneKey app on your phone." FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="0,4,0,0"/>
+        </StackPanel>
+
+        <!-- QR Code Display Area -->
+        <Border Grid.Row="1" Background="{StaticResource BrushCardDark}" CornerRadius="12" Padding="20" BorderBrush="{StaticResource BrushBorderDark}" BorderThickness="1">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Border Background="White" CornerRadius="8" Padding="12" HorizontalAlignment="Center" Margin="0,0,0,16">
+                    <Image x:Name="ImgQrCode" Width="220" Height="220" Stretch="Uniform"/>
+                </Border>
+
+                <!-- Password Stash Input -->
+                <TextBlock Text="Windows Password (to seal into DPAPI Vault):" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,0,4"/>
+                <PasswordBox x:Name="PbPassword" Width="280" Height="32" Background="#0F172A" Foreground="White" BorderBrush="{StaticResource BrushBorderDark}" Padding="6,4"/>
+                <TextBlock Text="Stored locally with DPAPI and sealed with phone key." FontSize="10" Foreground="#64748B" Margin="0,4,0,0" HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Footer Buttons -->
+        <DockPanel Grid.Row="2" Margin="0,16,0,0" LastChildFill="False">
+            <Button x:Name="BtnCancel" Content="Cancel" Style="{StaticResource SecondaryBtn}" DockPanel.Dock="Left" Click="BtnCancel_Click"/>
+            <Button x:Name="BtnComplete" Content="Complete Enrollment" Style="{StaticResource ModernBtn}" DockPanel.Dock="Right" Click="BtnComplete_Click"/>
+        </DockPanel>
+    </Grid>
+</Window>

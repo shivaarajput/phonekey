@@ -1,0 +1,6 @@
+#pragma once
+#include <initguid.h>
+
+// {8E79B5A2-7D3C-4D2A-98C1-F04E51C2D901}
+DEFINE_GUID(CLSID_PhoneKeyCredentialProvider, 
+    0x8e79b5a2, 0x7d3c, 0x4d2a, 0x98, 0xc1, 0xf0, 0x4e, 0x51, 0xc2, 0xd9, 0x01);
