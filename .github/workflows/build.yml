@@ -50,7 +50,7 @@ jobs:
           
           # Find and copy C++ Credential Provider DLL
           $dll = (Get-ChildItem -Path "windows" -Filter "PhoneKeyCP.dll" -Recurse | Select-Object -First 1).FullName
-          Copy-Item $dll -Destination $dist -Force
+          Copy-Item $dll -Destination "$dist\PhoneKeyCP.dll" -Force
           
           # Copy .NET Windows Service
           New-Item -ItemType Directory -Path "$dist\Service" -Force | Out-Null

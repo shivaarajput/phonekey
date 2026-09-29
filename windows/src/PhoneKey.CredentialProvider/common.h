@@ -4,13 +4,17 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 
+#ifndef SECURITY_WIN32
+#define SECURITY_WIN32
+#endif
+
 #include <windows.h>
 #include <strsafe.h>
 #include <shlwapi.h>
 #include <credentialprovider.h>
 #include <ntsecapi.h>
 #include <subauth.h>
-#include <sspi.h>
+#include <security.h>
 #include <new>
 
 #ifndef NEGOSSP_NAME_A
