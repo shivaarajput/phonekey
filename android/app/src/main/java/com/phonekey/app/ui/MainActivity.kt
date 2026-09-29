@@ -139,7 +139,7 @@ fun MainScreen(onScanQr: () -> Unit, repository: PairedPcRepository) {
                 title = { Text("PhoneKey", fontWeight = FontWeight.Bold) },
                 actions = {
                     IconButton(onClick = onScanQr) {
-                        Icon(Icons.Default.QrCodeScanner, contentDescription = "Pair PC")
+                        Icon(Icons.Default.Add, contentDescription = "Pair PC")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -225,7 +225,7 @@ fun MainScreen(onScanQr: () -> Unit, repository: PairedPcRepository) {
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
-                            Icons.Default.Devices,
+                            Icons.Default.Phone,
                             contentDescription = null,
                             tint = Color(0xFF475569),
                             modifier = Modifier.size(56.dp)
@@ -241,7 +241,7 @@ fun MainScreen(onScanQr: () -> Unit, repository: PairedPcRepository) {
                             onClick = onScanQr,
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6366F1))
                         ) {
-                            Icon(Icons.Default.QrCodeScanner, contentDescription = null)
+                            Icon(Icons.Default.Add, contentDescription = null)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("Pair PC via QR Code")
                         }
@@ -288,7 +288,7 @@ fun PcItemCard(pc: PairedPc, onRevoke: () -> Unit, onDelete: () -> Unit) {
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        Icons.Default.Computer,
+                        Icons.Default.Phone,
                         contentDescription = null,
                         tint = if (pc.isRevoked) Color(0xFFEF4444) else Color(0xFF6366F1),
                         modifier = Modifier.size(28.dp)
@@ -312,7 +312,7 @@ fun PcItemCard(pc: PairedPc, onRevoke: () -> Unit, onDelete: () -> Unit) {
                 Row {
                     if (!pc.isRevoked) {
                         IconButton(onClick = onRevoke) {
-                            Icon(Icons.Default.Block, contentDescription = "Revoke", tint = Color(0xFFF59E0B))
+                            Icon(Icons.Default.Lock, contentDescription = "Revoke", tint = Color(0xFFF59E0B))
                         }
                     }
                     IconButton(onClick = onDelete) {

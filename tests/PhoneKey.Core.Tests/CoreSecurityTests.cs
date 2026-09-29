@@ -41,7 +41,7 @@ namespace PhoneKey.Core.Tests
             long timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
             byte[] signableDigest = ECDsaValidator.BuildSignablePayload(pcId, noncePc, timestamp, noncePhone);
-            byte[] signature = ecdsa.SignHash(signableDigest, DSASignatureFormat.IeeeP1363);
+            byte[] signature = ecdsa.SignHash(signableDigest, DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
 
             // Valid signature check
             bool isValid = ECDsaValidator.VerifySignature(pubKey, signableDigest, signature);

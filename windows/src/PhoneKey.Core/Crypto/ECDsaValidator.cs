@@ -74,7 +74,7 @@ namespace PhoneKey.Core.Crypto
 
                 // If signature is 64 bytes, it's IEEE P1363 (r || s). Otherwise, ASN.1 DER.
                 var format = (signature.Length == 64) 
-                    ? DSASignatureFormat.IeeeP1363 
+                    ? DSASignatureFormat.IeeeP1363FixedFieldConcatenation 
                     : DSASignatureFormat.Rfc3279DerSequence;
 
                 return ecdsa.VerifyHash(signableDigest, signature, format);
