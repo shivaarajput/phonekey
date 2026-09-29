@@ -135,12 +135,12 @@ namespace PhoneKey.Core.Tests
             sm.NotifyAuthenticated();
             Assert.Equal(ProximityState.AuthenticatedOutOfRange, sm.CurrentState);
 
-            // Strong RSSI brings it into proximity
-            sm.ProcessRssi(-60);
+            // Strong RSSI brings it into proximity (feed consecutive samples to converge Kalman filter)
+            for (int i = 0; i < 5; i++) sm.ProcessRssi(-60);
             Assert.Equal(ProximityState.InProximity, sm.CurrentState);
 
-            // Weak RSSI enters grace period
-            sm.ProcessRssi(-90);
+            // Weak RSSI enters grace period after Kalman filter converges past lock threshold
+            for (int i = 0; i < 6; i++) sm.ProcessRssi(-90);
             Assert.Equal(ProximityState.GracePeriod, sm.CurrentState);
 
             // Tick past grace period triggers lock
