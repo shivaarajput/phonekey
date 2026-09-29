@@ -145,7 +145,7 @@ IFACEMETHODIMP CPhoneKeyCredentialProvider::GetCredentialCount(
     *pdwCount = 1;
     *pdwDefault = 0;
 
-    PhoneKeyStatus status;
+    PhoneKeyIpcStatus status;
     ZeroMemory(&status, sizeof(status));
     CIpcClient::QueryStatus(&status);
 
