@@ -33,19 +33,8 @@ namespace PhoneKey.Service
             string appDir = Path.Combine(programData, "PhoneKey");
             Directory.CreateDirectory(appDir);
 
-            // Read or initialize persistent PC ID
-            string pcIdPath = Path.Combine(appDir, "pcid.dat");
-            Guid pcId;
-            if (File.Exists(pcIdPath) && Guid.TryParse(File.ReadAllText(pcIdPath), out var existingGuid))
-            {
-                pcId = existingGuid;
-            }
-            else
-            {
-                pcId = Guid.NewGuid();
-                File.WriteAllText(pcIdPath, pcId.ToString());
-            }
-
+            // Read or initialize persistent PC ID shared across Service and UI
+            Guid pcId = PhoneKeyEnvironment.GetOrCreatePcId();
             _logger.LogInformation("Workstation PhoneKey PC Identity GUID: {PcId}", pcId);
 
             var deviceRegistry = new DeviceRegistry();

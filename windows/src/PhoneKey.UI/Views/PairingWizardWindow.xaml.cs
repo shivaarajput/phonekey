@@ -25,7 +25,7 @@ namespace PhoneKey.UI.Views
 
         private void GeneratePairingQr()
         {
-            _pcId = Guid.NewGuid();
+            _pcId = PhoneKeyEnvironment.GetOrCreatePcId();
             RandomNumberGenerator.Fill(_ephemeralSharedSecret);
 
             using var ecdh = ECDiffieHellman.Create(ECCurve.NamedCurves.nistP256);
@@ -81,13 +81,10 @@ namespace PhoneKey.UI.Views
                     DeviceId = Guid.NewGuid(),
                     DeviceName = "Enrolled Android Phone",
                     SharedSecretBase64 = Convert.ToBase64String(_ephemeralSharedSecret),
+                    PublicKeyBase64 = "", // Populated automatically via BLE GATT handshake
                     HardwareLevel = HardwareSecurityLevel.Tee,
                     EnrolledAtUtc = DateTimeOffset.UtcNow
                 };
-
-                // Export sample self-signed / enrolled public key for verification
-                using var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256);
-                dev.PublicKeyBase64 = Convert.ToBase64String(ecdsa.ExportSubjectPublicKeyInfo());
 
                 _registry.SaveDevice(dev);
 

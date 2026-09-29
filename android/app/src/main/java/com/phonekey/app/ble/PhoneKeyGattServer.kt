@@ -25,6 +25,7 @@ class PhoneKeyGattServer(
     private var bluetoothGattServer: BluetoothGattServer? = null
     private var connectedDevice: BluetoothDevice? = null
     private var challengeCharacteristic: BluetoothGattCharacteristic? = null
+    private var lastResponsePayload: ByteArray? = null
 
     private val gattServerCallback = object : BluetoothGattServerCallback() {
         @SuppressLint("MissingPermission")
@@ -58,6 +59,19 @@ class PhoneKeyGattServer(
                     val hbData = byteArrayOf(0x01, 100) // Screen On, Battery 100%
                     bluetoothGattServer?.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, hbData)
                 }
+                GattUuids.PUBLIC_KEY_CHAR_UUID -> {
+                    val repository = com.phonekey.app.data.PairedPcRepository(context)
+                    val pcs = repository.getPairedPcs()
+                    val activePc = pcs.firstOrNull { !it.isRevoked }
+                    val keyBytes = if (activePc != null) {
+                        com.phonekey.app.crypto.KeyStoreManager.getPublicKeyBytes(activePc.pcId) ?: byteArrayOf()
+                    } else byteArrayOf()
+                    bluetoothGattServer?.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, keyBytes)
+                }
+                GattUuids.CHALLENGE_CHAR_UUID -> {
+                    val resp = lastResponsePayload ?: byteArrayOf()
+                    bluetoothGattServer?.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, resp)
+                }
                 else -> {
                     bluetoothGattServer?.sendResponse(device, requestId, BluetoothGatt.GATT_FAILURE, 0, null)
                 }
@@ -85,6 +99,7 @@ class PhoneKeyGattServer(
                 val result = ChallengeProcessor.processChallenge(value)
 
                 if (result.responsePayload.isNotEmpty()) {
+                    lastResponsePayload = result.responsePayload
                     // Send indication with response packet
                     characteristic.value = result.responsePayload
                     bluetoothGattServer?.notifyCharacteristicChanged(device, characteristic, true)
@@ -148,9 +163,17 @@ class PhoneKeyGattServer(
             BluetoothGattCharacteristic.PERMISSION_READ
         )
 
+        // Public Key Characteristic (NIST P-256 Public Key)
+        val publicKeyChar = BluetoothGattCharacteristic(
+            GattUuids.PUBLIC_KEY_CHAR_UUID,
+            BluetoothGattCharacteristic.PROPERTY_READ,
+            BluetoothGattCharacteristic.PERMISSION_READ
+        )
+
         service.addCharacteristic(versionChar)
         service.addCharacteristic(challengeChar)
         service.addCharacteristic(heartbeatChar)
+        service.addCharacteristic(publicKeyChar)
 
         bluetoothGattServer?.addService(service)
         Log.i(TAG, "PhoneKey GATT Server started successfully.")

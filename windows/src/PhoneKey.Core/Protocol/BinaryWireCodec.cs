@@ -17,7 +17,7 @@ namespace PhoneKey.Core.Protocol
             buffer[2] = AuthChallengeReq.ProtocolVersion;
             buffer[3] = (byte)OpCode.AuthChallengeReq;
 
-            req.PcId.TryWriteBytes(buffer.AsSpan(4, 16));
+            req.PcId.TryWriteBytes(buffer.AsSpan(4, 16), bigEndian: true, out _);
             req.NoncePc.CopyTo(buffer.AsSpan(20, 32));
             BinaryPrimitives.WriteInt64BigEndian(buffer.AsSpan(52, 8), req.TimestampUtcMs);
             buffer[60] = req.PolicyFlags;
@@ -39,7 +39,7 @@ namespace PhoneKey.Core.Protocol
             byte opCode = data[3];
             if (opCode != (byte)OpCode.AuthChallengeReq) return false;
 
-            var pcId = new Guid(data.Slice(4, 16));
+            var pcId = new Guid(data.Slice(4, 16), bigEndian: true);
             byte[] nonce = data.Slice(20, 32).ToArray();
             long timestamp = BinaryPrimitives.ReadInt64BigEndian(data.Slice(52, 8));
             byte flags = data[60];

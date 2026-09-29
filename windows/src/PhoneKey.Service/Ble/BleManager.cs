@@ -22,6 +22,7 @@ namespace PhoneKey.Service.Ble
         public static readonly Guid VersionCharUuid = new("0000FEE1-7068-6F6E-656B-657900000001");
         public static readonly Guid ChallengeCharUuid = new("0000FEE2-7068-6F6E-656B-657900000001");
         public static readonly Guid HeartbeatCharUuid = new("0000FEE3-7068-6F6E-656B-657900000001");
+        public static readonly Guid PublicKeyCharUuid = new("0000FEE4-7068-6F6E-656B-657900000001");
 
         private readonly ILogger<BleManager> _logger;
         private readonly DeviceRegistry _deviceRegistry;
@@ -33,6 +34,7 @@ namespace PhoneKey.Service.Ble
         private BluetoothLEDevice? _connectedDevice;
         private GattCharacteristic? _challengeChar;
         private GattCharacteristic? _heartbeatChar;
+        private GattCharacteristic? _publicKeyChar;
         private EnrolledDevice? _activeEnrolledDevice;
         private TaskCompletionSource<byte[]>? _challengeResponseTcs;
         private readonly SemaphoreSlim _authLock = new(1, 1);
@@ -141,6 +143,36 @@ namespace PhoneKey.Service.Ble
 
                 _challengeChar = charResult.Characteristics.FirstOrDefault(c => c.Uuid == ChallengeCharUuid);
                 _heartbeatChar = charResult.Characteristics.FirstOrDefault(c => c.Uuid == HeartbeatCharUuid);
+                _publicKeyChar = charResult.Characteristics.FirstOrDefault(c => c.Uuid == PublicKeyCharUuid);
+
+                // Auto-read and bind phone's public key from TEE/StrongBox if available
+                if (_publicKeyChar != null)
+                {
+                    try
+                    {
+                        var pubKeyResult = await _publicKeyChar.ReadValueAsync(BluetoothCacheMode.Uncached);
+                        if (pubKeyResult.Status == GattCommunicationStatus.Success && pubKeyResult.Value.Length > 0)
+                        {
+                            byte[] rawKey = pubKeyResult.Value.ToArray();
+                            string keyB64 = Convert.ToBase64String(rawKey);
+                            var devs = _deviceRegistry.GetDevices().Where(d => !d.IsRevoked).ToList();
+                            foreach (var dev in devs)
+                            {
+                                if (string.IsNullOrEmpty(dev.PublicKeyBase64) || dev.PublicKeyBase64.Length < 20 || dev.DeviceName == "Enrolled Android Phone")
+                                {
+                                    dev.PublicKeyBase64 = keyB64;
+                                    _deviceRegistry.SaveDevice(dev);
+                                    _logger.LogInformation("Imported phone public key ({Len} bytes) via GATT into enrolled device registry.", rawKey.Length);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogDebug(ex, "Public key characteristic read optional fallback.");
+                    }
+                }
 
                 if (_challengeChar == null)
                 {

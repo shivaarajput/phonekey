@@ -22,18 +22,25 @@ namespace PhoneKey.Core.Crypto
             if (noncePhone == null || noncePhone.Length != CryptoConstants.NonceSizeBytes)
                 throw new ArgumentException($"NoncePhone must be {CryptoConstants.NonceSizeBytes} bytes", nameof(noncePhone));
 
-            using var ms = new MemoryStream();
-            using var writer = new BinaryWriter(ms, Encoding.UTF8, leaveOpen: true);
+            // Domain (16 bytes) + PcId (16 bytes) + NoncePc (32 bytes) + Timestamp (8 bytes) + NoncePhone (32 bytes) = 104 bytes
+            byte[] buffer = new byte[16 + 16 + 32 + 8 + 32];
+            
+            // 1. Domain Separator
+            Encoding.UTF8.GetBytes(CryptoConstants.ProtocolDomainV1).CopyTo(buffer.AsSpan(0, 16));
+            
+            // 2. PcId in RFC 4122 Network Big-Endian
+            pcId.TryWriteBytes(buffer.AsSpan(16, 16), bigEndian: true, out _);
+            
+            // 3. NoncePc
+            noncePc.CopyTo(buffer.AsSpan(32, 32));
+            
+            // 4. Timestamp in Big-Endian (matching Java DataOutputStream.writeLong)
+            System.Buffers.Binary.BinaryPrimitives.WriteInt64BigEndian(buffer.AsSpan(64, 8), timestampUtcMs);
+            
+            // 5. NoncePhone
+            noncePhone.CopyTo(buffer.AsSpan(72, 32));
 
-            byte[] domainBytes = Encoding.UTF8.GetBytes(CryptoConstants.ProtocolDomainV1);
-            writer.Write(domainBytes);
-            writer.Write(pcId.ToByteArray());
-            writer.Write(noncePc);
-            writer.Write(timestampUtcMs);
-            writer.Write(noncePhone);
-            writer.Flush();
-
-            return SHA256.HashData(ms.ToArray());
+            return SHA256.HashData(buffer);
         }
 
         /// <summary>

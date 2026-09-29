@@ -38,6 +38,13 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".ui.PortraitCaptureActivity"
+            android:screenOrientation="portrait"
+            android:stateNotNeeded="true"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            tools:replace="android:screenOrientation" />
+
         <service
             android:name=".service.PhoneKeyForegroundService"
             android:exported="false"

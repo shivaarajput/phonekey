@@ -39,6 +39,7 @@ import java.util.*
 class MainActivity : ComponentActivity() {
 
     private lateinit var repository: PairedPcRepository
+    private val pairedPcsState = mutableStateOf<List<PairedPc>>(emptyList())
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -60,6 +61,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         repository = PairedPcRepository(this)
+        pairedPcsState.value = repository.getPairedPcs()
 
         checkAndRequestPermissions()
 
@@ -67,9 +69,24 @@ class MainActivity : ComponentActivity() {
             PhoneKeyTheme {
                 MainScreen(
                     onScanQr = { launchQrScanner() },
-                    repository = repository
+                    pairedPcs = pairedPcsState.value,
+                    onRevoke = { pcId ->
+                        repository.revokePc(pcId)
+                        pairedPcsState.value = repository.getPairedPcs()
+                    },
+                    onDelete = { pcId ->
+                        repository.deletePc(pcId)
+                        pairedPcsState.value = repository.getPairedPcs()
+                    }
                 )
             }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::repository.isInitialized) {
+            pairedPcsState.value = repository.getPairedPcs()
         }
     }
 
@@ -99,7 +116,8 @@ class MainActivity : ComponentActivity() {
         val options = ScanOptions().apply {
             setPrompt("Scan PhoneKey pairing QR code on Windows screen")
             setBeepEnabled(true)
-            setOrientationLocked(false)
+            setOrientationLocked(true)
+            setCaptureActivity(PortraitCaptureActivity::class.java)
         }
         qrScanLauncher.launch(options)
     }
@@ -120,6 +138,9 @@ class MainActivity : ComponentActivity() {
             )
             repository.savePc(pc)
 
+            // Immediately refresh UI state so enrolled card shows up
+            pairedPcsState.value = repository.getPairedPcs()
+
             Toast.makeText(this, "Enrolled with $hostname (${keyResult.securityLevel})", Toast.LENGTH_LONG).show()
         } catch (e: Exception) {
             Toast.makeText(this, "Invalid QR code format: ${e.message}", Toast.LENGTH_LONG).show()
@@ -129,8 +150,12 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(onScanQr: () -> Unit, repository: PairedPcRepository) {
-    var pairedPcs by remember { mutableStateOf(repository.getPairedPcs()) }
+fun MainScreen(
+    onScanQr: () -> Unit,
+    pairedPcs: List<PairedPc>,
+    onRevoke: (String) -> Unit,
+    onDelete: (String) -> Unit
+) {
     var serviceEnabled by remember { mutableStateOf(true) }
 
     Scaffold(
@@ -252,14 +277,8 @@ fun MainScreen(onScanQr: () -> Unit, repository: PairedPcRepository) {
                     items(pairedPcs) { pc ->
                         PcItemCard(
                             pc = pc,
-                            onRevoke = {
-                                repository.revokePc(pc.pcId)
-                                pairedPcs = repository.getPairedPcs()
-                            },
-                            onDelete = {
-                                repository.deletePc(pc.pcId)
-                                pairedPcs = repository.getPairedPcs()
-                            }
+                            onRevoke = { onRevoke(pc.pcId) },
+                            onDelete = { onDelete(pc.pcId) }
                         )
                         Spacer(modifier = Modifier.height(10.dp))
                     }

@@ -102,6 +102,13 @@ object KeyStoreManager {
         return keyStore.containsAlias(getAliasForPc(pcId))
     }
 
+    fun getPublicKeyBytes(pcId: String): ByteArray? {
+        val alias = getAliasForPc(pcId)
+        val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
+        val cert = keyStore.getCertificate(alias) ?: return null
+        return cert.publicKey.encoded
+    }
+
     fun deleteKey(pcId: String) {
         val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
         val alias = getAliasForPc(pcId)
